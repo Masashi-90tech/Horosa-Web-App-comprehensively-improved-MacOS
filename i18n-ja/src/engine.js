@@ -4,7 +4,8 @@
 //   - アプリ本体の JS・計算ロジック・データ・API 通信には一切触れない。
 //   - React が画面に描いた「文字」だけを、表示の直前（MutationObserver = 描画前のマイクロタスク）に差し替える。
 //   - 辞書に無い文字列は中国語のまま表示する（翻訳漏れがあっても壊れない）。
-//   - 星盤などの SVG / Canvas、入力欄、エディタの中身は対象外。
+//   - 入力欄・エディタの中身と Canvas は対象外。星盤などの SVG は字体だけ日本式にする（訳は入れない）。
+//   - 辞書に無い文字列も、簡体字を1文字ずつ日本の字体にする（马→馬 など。文脈で字が変わる字は除く）。
 //
 // 差し替えの 2 方式:
 //   1) テキストノード: nodeValue を辞書の訳に置き換える（React はノードを再利用するので安全）。
@@ -30,6 +31,13 @@ var DATA = require('../build/data.json');
 	var ATTRS = ['placeholder', 'title', 'aria-label', 'alt'];
 	var SKIP_TAGS = { SCRIPT: 1, STYLE: 1, NOSCRIPT: 1, TEXTAREA: 1, INPUT: 1, CODE: 1, PRE: 1, CANVAS: 1, IFRAME: 1, svg: 1, SVG: 1, math: 1 };
 	var SKIP_SEL = '[contenteditable=""],[contenteditable="true"],.monaco-editor,.ql-editor,[data-hja-skip],[data-hja-tr],svg';
+	// SVG（星盤）の中は、辞書の訳は入れず（枠からはみ出すため）、字体だけ日本式にする。
+	var HARD_SKIP_SEL = '[contenteditable=""],[contenteditable="true"],.monaco-editor,.ql-editor,[data-hja-skip],[data-hja-tr]';
+	// 辞書に無い文字列の最後の手段: 簡体字を 1 文字ずつ日本の字体にする（马→馬、杀→殺 など。文脈で字が変わる字は対象外）。
+	var CHARMAP = new Map();
+	for(var ci = 0; ci + 1 < DATA.charmap.length; ci += 2){
+		CHARMAP.set(DATA.charmap[ci], DATA.charmap[ci + 1]);
+	}
 	var INTERACTIVE_SEL = 'input,textarea,select,button';
 
 	function readLang(){
@@ -149,6 +157,22 @@ var DATA = require('../build/data.json');
 		return null;
 	}
 
+	function kanjify(v){
+		var out = '';
+		var changed = false;
+		for(var i = 0; i < v.length; i++){
+			var c = v.charAt(i);
+			var j = CHARMAP.get(c);
+			if(j){
+				out += j;
+				changed = true;
+			}else{
+				out += c;
+			}
+		}
+		return changed ? out : null;
+	}
+
 	// 自分で書いた値は再翻訳しない（訳文が別の原文キーと偶然一致する事故を防ぐ）。
 	var lastText = new WeakMap();
 	var lastAttr = new WeakMap();
@@ -159,12 +183,15 @@ var DATA = require('../build/data.json');
 			return;
 		}
 		var ja = lookup(v, node.parentElement);
+		var next;
 		if(ja == null){
-			return;
+			next = kanjify(v);
+			if(next == null){
+				return;
+			}
+		}else{
+			next = v.match(/^\s*/)[0] + ja + v.match(/\s*$/)[0];
 		}
-		var lead = v.match(/^\s*/)[0];
-		var trail = v.match(/\s*$/)[0];
-		var next = lead + ja + trail;
 		lastText.set(node, next);
 		if(next !== v){
 			node.nodeValue = next;
@@ -188,7 +215,10 @@ var DATA = require('../build/data.json');
 			}
 			var ja = lookup(v, el);
 			if(ja == null){
-				continue;
+				ja = kanjify(v);
+				if(ja == null){
+					continue;
+				}
 			}
 			if(!seen){
 				seen = {};
@@ -335,7 +365,46 @@ var DATA = require('../build/data.json');
 		return !el || !!(el.closest && el.closest(SKIP_SEL)) || (el.tagName && !!SKIP_TAGS[el.tagName]);
 	}
 
+	function svgOf(node){
+		var el = node.nodeType === 1 ? node : node.parentElement;
+		return el && el.closest ? el.closest('svg') : null;
+	}
+
+	function kanjifyTextNode(node){
+		var v = node.nodeValue;
+		if(!v || !CJK_RE.test(v) || lastText.get(node) === v){
+			return;
+		}
+		var next = kanjify(v);
+		lastText.set(node, next == null ? v : next);
+		if(next != null){
+			node.nodeValue = next;
+			stats.text++;
+		}
+	}
+
+	// SVG の中の文字は字体だけ変える（テキストの長さが変わらないので、図の配置が崩れない）。
+	function scanSvg(root){
+		var el = root.nodeType === 1 ? root : root.parentElement;
+		if(!el || (el.closest && el.closest(HARD_SKIP_SEL))){
+			return;
+		}
+		if(root.nodeType === 3){
+			kanjifyTextNode(root);
+			return;
+		}
+		var w = document.createTreeWalker(root, 4);
+		var n;
+		while((n = w.nextNode())){
+			kanjifyTextNode(n);
+		}
+	}
+
 	function scan(root){
+		if(svgOf(root)){
+			scanSvg(root);
+			return;
+		}
 		if(root.nodeType === 3){
 			if(!insideSkipped(root)){
 				translateTextNode(root);
@@ -348,6 +417,10 @@ var DATA = require('../build/data.json');
 		var stack = [root];
 		while(stack.length){
 			var el = stack.pop();
+			if(el.tagName === 'svg' || el.tagName === 'SVG'){
+				scanSvg(el);
+				continue;
+			}
 			if(isSkippedElement(el)){
 				// 入力欄そのものの値は訳さないが、placeholder / title は表示文言なので訳す。
 				if((el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') && !el.closest('[data-hja-skip]')){
@@ -421,7 +494,9 @@ var DATA = require('../build/data.json');
 				continue;
 			}
 			if(m.type === 'characterData'){
-				if(!insideSkipped(m.target)){
+				if(svgOf(m.target)){
+					scanSvg(m.target);
+				}else if(!insideSkipped(m.target)){
 					var parent = m.target.parentElement;
 					if(parent && shared.isBlockCandidate(parent) && blockTemplate(parent)){
 						scan(parent);

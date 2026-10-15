@@ -122,6 +122,9 @@ if(errors.length){
 	process.exit(1);
 }
 
+// ── 1文字ずつの字体変換表 dict/charmap.json（tools/charmap.py が生成）──
+const charmap = JSON.parse(fs.readFileSync(path.join(root, 'dict', 'charmap.json'), 'utf8')).map;
+
 const keys = Object.keys(blocks);
 const data = {
 	version: VERSION,
@@ -129,6 +132,7 @@ const data = {
 	blocks,
 	scoped,
 	patterns,
+	charmap,
 	blockMinLen: keys.length ? Math.min(...keys.map((k)=>k.length)) : 1,
 	blockMaxLen: keys.length ? Math.max(...keys.map((k)=>k.length)) : 0,
 };
@@ -180,7 +184,7 @@ for(const w of warnings){
 	console.warn('warn:', w);
 }
 const untranslatedCjk = Object.values(text).filter((v)=>hasCjk(v)).length;
-console.log(`v${VERSION}: UI ${Object.keys(text).length} 語（うち漢字を含む訳 ${untranslatedCjk}）, 範囲限定 ${scoped.length} 組, 置換規則 ${patterns.length}, 解説 ${keys.length} 段落`);
+console.log(`v${VERSION}: UI ${Object.keys(text).length} 語（うち漢字を含む訳 ${untranslatedCjk}）, 範囲限定 ${scoped.length} 組, 置換規則 ${patterns.length}, 解説 ${keys.length} 段落, 字体変換 ${charmap.length / 2} 字`);
 for(const s of helpStats){
 	console.log('  ' + s);
 }

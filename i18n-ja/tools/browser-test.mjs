@@ -64,7 +64,8 @@ function App(){
 			<div id="untouched">
 				<span id="ziwei-xian">陷</span>
 				<span id="ganzhi">甲子</span>
-				<svg width="80" height="20"><text id="svgtext" x="0" y="15">白羊</text></svg>
+				<svg width="80" height="20"><text id="svgtext" x="0" y="15">白羊</text><text id="svgkanji" x="40" y="15">天马</text></svg>
+				<span id="fallback">表征老运的走势</span>
 				<div id="editor" contentEditable suppressContentEditableWarning>取消</div>
 				<input id="inp" placeholder="请输入" defaultValue="取消" />
 			</div>
@@ -161,6 +162,8 @@ check('重ねた訳文で太字を保つ', (await page.$eval('#para [data-hja-tr
 check('紫微の「陷」は訳さない', (await txt('#ziwei-xian')) === '陷');
 check('干支は訳さない', (await txt('#ganzhi')) === '甲子');
 check('SVG 内は訳さない', (await txt('#svgtext')) === '白羊');
+check('SVG 内は字体だけ日本式（天马→天馬）', (await txt('#svgkanji')) === '天馬');
+check('辞書に無い文字列は字体だけ日本式', (await txt('#fallback')) === '表征老運的走勢', await txt('#fallback'));
 check('編集可能領域は訳さない', (await txt('#editor')) === '取消');
 check('入力値は訳さない', (await page.$eval('#inp', (el)=>el.value)) === '取消');
 check('placeholder は訳す', (await page.$eval('#inp', (el)=>el.placeholder)) === '入力してください');
@@ -171,10 +174,10 @@ check('ページタイトル', (await page.title()) === '星闕', await page.tit
 // React の再描画（状態変化）
 await page.click('#next');
 check('再描画: 状態テキストが変わっても訳す', (await txt('#status')) === '完了');
-check('再描画: 段落が辞書外になったら原文に戻る', (await visible('#para')) === '这一段不在辞典里所以应保持中文。', await visible('#para'));
+check('再描画: 段落が辞書外になったら原文（字体だけ日本式）に戻る', (await visible('#para')) === '這一段不在辞典里所以応保持中文。', await visible('#para'));
 await page.click('#next');
 check('再描画: 段落が辞書内に戻ったら再び訳す', (await visible('#para')).includes('出生図'), await visible('#para'));
-check('再描画: ボタン内の数字入りテキストは原文のまま動く', (await visible('#next')) === '切换2');
+check('再描画: ボタン内の数字入りテキストも追従する（字体だけ日本式）', (await visible('#next')) === '切換2', await visible('#next'));
 // アンマウント/再マウント
 await page.click('#toggle');
 await page.click('#toggle');
