@@ -29,11 +29,15 @@ const out = process.argv[2] || path.join(root, 'build', 'ui-candidates.tsv');
 const UI_ATTRS = new Set(['title', 'label', 'placeholder', 'tab', 'okText', 'cancelText', 'message', 'description',
 	'content', 'tooltip', 'header', 'extra', 'addonBefore', 'addonAfter', 'help', 'text', 'desc', 'tip', 'emptyText',
 	'checkedChildren', 'unCheckedChildren', 'aria-label', 'alt', 'children', 'subTitle', 'subtitle', 'caption', 'hint',
-	'note', 'summary', 'prefix', 'suffix', 'name', 'buttonText', 'confirmText', 'heading', 'legend', 'unit']);
+	'note', 'summary', 'prefix', 'suffix', 'name', 'buttonText', 'confirmText', 'heading', 'legend', 'unit', 'options']);
 const UI_KEYS = new Set(['label', 'title', 'text', 'desc', 'description', 'placeholder', 'tip', 'tooltip', 'message',
 	'content', 'header', 'tab', 'okText', 'cancelText', 'emptyText', 'hint', 'note', 'caption', 'subtitle', 'subTitle',
 	'summary', 'heading', 'name', 'group', 'groupLabel', 'short', 'shortLabel', 'full', 'fullLabel', 'display',
-	'displayName', 'help', 'unit', 'legend', 'btnText', 'buttonText', 'confirmText', 'detail', 'brief', 'badge', 'tag']);
+	'displayName', 'help', 'unit', 'legend', 'btnText', 'buttonText', 'confirmText', 'detail', 'brief', 'badge', 'tag',
+	// 選択肢・一覧の短縮キー（{ v: 'x', l: '表示名' } など）と、タロット等の意味（up / rev）
+	'l', 'lbl', 'cn', 'zh', 'up', 'rev', 'lo', 'mean', 'meaning', 'when', 'then', 'def', 'pt', 'jx', 'role', 'dir', 'keywords', 'kw']);
+// 表示用の行・欄を作るヘルパー関数（kv('ラベル', 値)、sel('ラベル', key, 選択肢) など）。文字列の引数を拾う。
+const LABEL_CALLS = /^(kv|row|card|sel|segField|field|numField|cell|mk|ana|mainTab|renderMoiraSection|need|section|item|tag|badge|chip|line|kvRow|infoRow|stat|pill|opt|option|label|th|td|li|para|note|hint|tip)$/;
 const NOTIFY_OBJS = new Set(['message', 'notification', 'Modal']);
 
 const stats = new Map();
