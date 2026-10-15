@@ -63,6 +63,17 @@ for RT in "${TARGETS[@]}"; do
 			continue
 		fi
 	fi
+	# 3) 圧縮版 index.html.gz を作り直す。アプリ内蔵サーバーは .gz があればそちらを優先して返すため、
+	#    古い .gz が残っていると、パッチ前の index.html が表示されてしまう。
+	if [ -f "$INDEX.gz" ]; then
+		[ -f "$INDEX.gz.before-horosa-ja" ] || cp -p "$INDEX.gz" "$INDEX.gz.before-horosa-ja"
+		if gzip -9 -c "$INDEX" > "$INDEX.gz.tmp" 2>/dev/null && mv -f "$INDEX.gz.tmp" "$INDEX.gz"; then
+			echo "  ✓ 圧縮版 index.html.gz を作り直しました"
+		else
+			rm -f "$INDEX.gz.tmp" "$INDEX.gz"
+			echo "  ✓ 圧縮版 index.html.gz を削除しました（アプリは通常版を使います）"
+		fi
+	fi
 	installed=$((installed + 1))
 done
 
@@ -73,5 +84,6 @@ if [ "$installed" -eq 0 ]; then
 	exit 1
 fi
 echo "完了しました（$installed か所）。Horosa（星阙）を起動すると日本語で表示されます。"
+echo "・Horosa を起動したままだった場合は、いったん終了（⌘Q）してから起動し直してください。"
 echo "・画面左下の「中文」ボタンで原文（中国語）表示に切り替えられます。"
 echo "・アプリをアップデートするとパッチが外れます。そのときはこのファイルをもう一度実行してください。"

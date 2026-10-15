@@ -30,6 +30,14 @@ const rt = fs.mkdtempSync(path.join(os.tmpdir(), 'hja-rt-'));
 const dist = path.join(rt, 'current', 'Horosa-Web', 'astrostudyui', 'dist-file');
 fs.mkdirSync(path.dirname(dist), { recursive: true });
 fs.cpSync(distSrc, dist, { recursive: true });
+// 配布版と同じく、4KB を超える html/js/css に .gz の圧縮版を置く（package_runtime_payload.sh の [B2]）。
+const zlib = require('node:zlib');
+for(const name of fs.readdirSync(dist)){
+	const f = path.join(dist, name);
+	if(/\.(html|js|css)$/.test(name) && fs.statSync(f).size > 4096){
+		fs.writeFileSync(f + '.gz', zlib.gzipSync(fs.readFileSync(f), { level: 9 }));
+	}
+}
 execFileSync('bash', [path.join(root, 'install_ja_patch.command'), path.join(rt, 'current')], { stdio: 'inherit' });
 
 const CSP = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://*.amap.com; style-src 'self' 'unsafe-inline' https://*.amap.com; img-src 'self' data: blob: https://*.amap.com https://*.autonavi.com; font-src 'self' data:; connect-src 'self' http://127.0.0.1:* http://localhost:* ws://127.0.0.1:* ws://localhost:* https://*.amap.com https://*.autonavi.com; worker-src 'self' blob:; media-src 'self' blob: data:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src 'self'";
@@ -48,6 +56,11 @@ const server = http.createServer((req, res)=>{
 	}
 	const type = MIME[path.extname(f)] || 'application/octet-stream';
 	const headers = { 'Content-Type': type };
+	// デスクトップ版と同じく、gzip を受け付けるクライアントには .gz の圧縮版を優先して返す。
+	if(/gzip/.test(req.headers['accept-encoding'] || '') && fs.existsSync(f + '.gz')){
+		f = f + '.gz';
+		headers['Content-Encoding'] = 'gzip';
+	}
 	if(type === 'text/html'){ headers['Content-Security-Policy'] = CSP; }
 	res.writeHead(200, headers);
 	fs.createReadStream(f).pipe(res);

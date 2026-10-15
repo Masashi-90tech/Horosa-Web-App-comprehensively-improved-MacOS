@@ -34,6 +34,12 @@ for RT in "${TARGETS[@]}"; do
 	perl -ni -e 'print unless /data-horosa-ja="1"/' "$INDEX"
 	rm -rf "$DIST/horosa-i18n"
 	rm -f "$INDEX.before-horosa-ja"
+	# 圧縮版 index.html.gz も元の内容に合わせる
+	if [ -f "$INDEX.gz.before-horosa-ja" ]; then
+		mv -f "$INDEX.gz.before-horosa-ja" "$INDEX.gz"
+	elif [ -f "$INDEX.gz" ]; then
+		gzip -9 -c "$INDEX" > "$INDEX.gz.tmp" 2>/dev/null && mv -f "$INDEX.gz.tmp" "$INDEX.gz" || rm -f "$INDEX.gz.tmp" "$INDEX.gz"
+	fi
 	if grep -q "$MARK" "$INDEX"; then
 		echo "  × 読み込みタグを取り除けませんでした"
 	else
