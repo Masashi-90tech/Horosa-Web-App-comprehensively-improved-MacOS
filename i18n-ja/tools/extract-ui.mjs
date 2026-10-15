@@ -154,6 +154,7 @@ for(const f of files){
 // 既存の辞書に入っているものは除く
 const known = new Set();
 for(const f of fs.readdirSync(path.join(root, 'dict', 'ui'))){
+	if(/^(80|90)-/.test(f)){ continue; } // sweep.py が作る辞書は候補から外さない（作り直すため）
 	const d = JSON.parse(fs.readFileSync(path.join(root, 'dict', 'ui', f), 'utf8'));
 	for(const [sec, map] of Object.entries(d)){
 		if(!sec.startsWith('_')){ Object.keys(map).forEach((k)=>known.add(normalize(k))); }
