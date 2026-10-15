@@ -63,7 +63,8 @@ const result = esbuild.buildSync({
 	write: false,
 	jsx: 'automatic',
 	loader: { '.js': 'jsx' },
-	alias: { antd: path.join(tmp, 'antd-shim.jsx') },
+	// React は必ず tools/ の 1 つだけを使う（アプリ側に node_modules があっても二重読み込みしない）。
+	alias: { antd: path.join(tmp, 'antd-shim.jsx'), react: path.join(here, 'node_modules', 'react'), 'react-dom': path.join(here, 'node_modules', 'react-dom') },
 	nodePaths,
 	logLevel: 'error',
 });

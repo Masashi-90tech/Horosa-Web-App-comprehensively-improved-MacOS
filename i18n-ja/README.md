@@ -16,6 +16,7 @@
 | 西洋占星ページ | 左欄の入力・設定項目、右欄タブ名、選択肢（黄道・ハウス・システム・盤のスタイル） |
 | 西洋占星の基本用語 | 天体・サイン・ハウス・品位などの名前（画面の文字として出る箇所） |
 | 共通のボタン・メッセージ | OK / キャンセル / 保存 / 削除 / 読み込み中… など |
+| 起動・接続の画面 | 「ローカルサービスに接続中…」、接続エラーやチャート作成失敗のメッセージ |
 | 日付選択などの部品 | 曜日、「今日」、ページ送り など |
 | **西洋占星術の操作マニュアル（ヘルプ）** | 全13タブ・650段落（約2.2万字）を全訳 |
 
@@ -113,7 +114,14 @@ node i18n-ja/tools/merge-tsv.mjs i18n-ja/dict/help/astro.json 訳.tsv
 node i18n-ja/tools/check-ja.mjs
 node i18n-ja/tools/build.mjs
 node i18n-ja/tools/browser-test.mjs
+# 本物のフロントエンドで確認（Horosa-Web/astrostudyui で npm ci && npm run build:file の後）
+node i18n-ja/tools/app-smoke.mjs Horosa-Web/astrostudyui/dist-file
 ```
+
+`browser-test.mjs` はアプリと同じ版の React 17 / antd 4.24 とデスクトップ版と同じ CSP で、
+翻訳・再描画・アンマウント・言語切替・SVG や入力欄を訳さないことなど約30項目を検査します。
+`app-smoke.mjs` は本物のビルド結果に本物のインストーラでパッチを当て、計算サーバーなしで画面を開いて
+未翻訳の文字列と JavaScript のエラーを報告します。
 
 開発中は、ブラウザのコンソールで `__HOROSA_I18N__.debugMissing()` を実行してから画面を操作し、
 `__HOROSA_I18N__.dumpMissing()` を実行すると、辞書にない中国語の一覧が取れます。

@@ -83,8 +83,8 @@ var DATA = require('../build/data.json');
 
 	function injectStyle(){
 		var css = ''
-			+ '#hja-switch{position:fixed;left:6px;bottom:6px;z-index:2147483000;font:11px/1.6 -apple-system,"Hiragino Sans",sans-serif;'
-			+ 'padding:0 7px;border-radius:9px;border:1px solid rgba(128,128,128,.45);background:rgba(128,128,128,.12);color:inherit;opacity:.45;cursor:pointer}'
+			+ '#hja-switch{position:fixed;left:3px;bottom:2px;z-index:2147483000;font:10px/1.5 -apple-system,"Hiragino Sans",sans-serif;'
+			+ 'padding:0 7px;border-radius:9px;border:1px solid rgba(255,255,255,.35);background:rgba(40,40,40,.72);color:#f2f2f2;opacity:.5;cursor:pointer}'
 			+ '#hja-switch:hover{opacity:1}'
 			+ '[data-hja-block]{font-size:0!important}'
 			+ '[data-hja-block]>:not([data-hja-tr]){display:none!important}';
@@ -132,7 +132,15 @@ var DATA = require('../build/data.json');
 		}
 		for(var i = 0; i < PATTERNS.length; i++){
 			if(PATTERNS[i][0].test(key)){
-				return key.replace(PATTERNS[i][0], PATTERNS[i][1]);
+				// 置換後の {1} {2} … は、そのグループを辞書で訳した文字列（辞書に無ければ原文のまま）。
+				return key.replace(PATTERNS[i][0], function(){
+					var groups = arguments;
+					return PATTERNS[i][1].replace(/\$(\d)/g, function(_, n){ return groups[n] || ''; })
+						.replace(/\{(\d)\}/g, function(_, n){
+							var g = groups[n] || '';
+							return Object.prototype.hasOwnProperty.call(TEXT, g) ? TEXT[g] : g;
+						});
+				});
 			}
 		}
 		if(debug){

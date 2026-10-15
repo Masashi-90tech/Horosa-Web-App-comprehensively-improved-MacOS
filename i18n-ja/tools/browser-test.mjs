@@ -76,7 +76,7 @@ function App(){
 			{show ? <div id="mounted"><span>星盘设置</span><span>显示星体</span></div> : null}
 			<DatePicker id="dp" open={n === 3} />
 			<Select id="sel" style={{ width: 160 }} defaultValue="0" options={[{ value: '0', label: '整宫制' }, { value: '1', label: 'Placidus' }]} />
-			<Modal title="帮助" visible={help} onCancel={()=>setHelp(false)} width={760} footer={null}>
+			<Modal title="占星 · 操作手册" visible={help} onCancel={()=>setHelp(false)} width={760} footer={null}>
 				<AstroHelpDoc />
 			</Modal>
 		</ConfigProvider>
@@ -94,6 +94,8 @@ esbuild.buildSync({
 	jsx: 'automatic',
 	loader: { '.js': 'jsx' },
 	nodePaths: [path.join(here, 'node_modules')],
+	// アプリ側に node_modules があっても、React などは必ず tools/ の 1 つだけを使う（React の二重読み込み防止）。
+	alias: Object.fromEntries(['react', 'react-dom', 'antd', 'moment'].map((m)=>[m, path.join(here, 'node_modules', m)])),
 	define: { 'process.env.NODE_ENV': '"development"' },
 	logLevel: 'error',
 });
@@ -190,10 +192,10 @@ await page.screenshot({ path: path.join(shotDir, 'datepicker.png') });
 // 解説モーダル（実物の AstroHelpDoc、antd Tabs）
 await page.click('#next');
 await page.click('#help');
-await page.waitForSelector('.ant-modal-body .ant-tabs');
+await page.waitForSelector('.ant-modal-body .ant-tabs', { timeout: 5000 }).catch(async (e)=>{ await page.screenshot({ path: path.join(shotDir, 'fail.png') }); console.log('CONSOLE:', consoleErrors.join('\n').slice(0, 1500)); throw e; });
 await page.waitForTimeout(300);
 const modalTitle = await visible('.ant-modal-title');
-check('モーダルタイトル', modalTitle === 'ヘルプ', modalTitle);
+check('モーダルタイトル（正規表現＋辞書）', modalTitle === '西洋占星 · 操作マニュアル', modalTitle);
 const tabNames = await page.$$eval('.ant-modal-body .ant-tabs-tab', (els)=>els.map((e)=>e.innerText.trim()));
 const stats0 = await page.evaluate(()=>({ ...window.__HOROSA_I18N__.stats }));
 await page.screenshot({ path: path.join(shotDir, 'help-overview.png') });
