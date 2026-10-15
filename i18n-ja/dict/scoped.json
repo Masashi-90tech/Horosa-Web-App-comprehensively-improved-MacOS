@@ -1,0 +1,15 @@
+[
+	{ "_comment": "1文字など、場所を限定しないと誤訳になる語。selector に一致する要素の中だけで使う。" },
+	{
+		"selector": ".horosa-main-tab-group",
+		"map": { "工具": "ツール", "内容": "コンテンツ", "管理": "管理" }
+	},
+	{
+		"selector": ".ant-picker-content th",
+		"map": { "一": "月", "二": "火", "三": "水", "四": "木", "五": "金", "六": "土", "日": "日" }
+	},
+	{
+		"selector": ".ant-pagination",
+		"map": { "页": "ページ" }
+	}
+]
