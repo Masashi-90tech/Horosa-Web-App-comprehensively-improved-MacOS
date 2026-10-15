@@ -1,8 +1,7 @@
 #!/bin/bash
 # Horosa（星阙）日本語表示パッチ — アンインストール（元の中国語表示に戻す）
 #
-# 使い方: アプリを終了（⌘Q）してから、このファイルをダブルクリック
-#         （開けない場合はターミナルで  bash uninstall_ja_patch.command ）
+# 使い方: アプリを終了（⌘Q）してから、ターミナルで  bash uninstall_ja_patch.command
 
 set -u
 MARK='data-horosa-ja="1"'

@@ -5,8 +5,8 @@
 # 計算エンジン（Python / Java）・アプリ本体・保存データには一切触れません。
 # 元に戻すときは uninstall_ja_patch.command を実行してください。
 #
-# 使い方: アプリを終了（⌘Q）してから、このファイルをダブルクリック
-#         （開けない場合はターミナルで  bash install_ja_patch.command ）
+# 使い方: アプリを終了（⌘Q）してから、ターミナルで  bash install_ja_patch.command
+#         （ダブルクリックは macOS の Gatekeeper に止められるため、bash で実行してください）
 # 引数を付けると、そのランタイム（…/runtime/current）だけを対象にします（テスト用）。
 
 set -u
