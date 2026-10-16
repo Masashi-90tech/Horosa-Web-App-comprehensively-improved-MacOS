@@ -219,7 +219,7 @@
 | 单盘 | 単一チャート |
 | 多盘 | 複数チャート |
 | 衍化 | 派生 |
-| 四分钟 | 4分 |
+| 四分钟 | 4分刻み |
 | 小时 | 時間 |
 
 ### 右欄タブ・中央
@@ -20729,6 +20729,8 @@ UI部品ライブラリ antd の中国語ロケール（zh_CN）で表示され�
 | `.ant-picker-content th` | 六 | 土 |
 | `.ant-picker-content th` | 日 | 日 |
 | `.ant-pagination` | 页 | ページ |
+| `.ant-select-dropdown, .ant-select-selector, .xq-segmented, .ant-radio-group` | 天 | 日 |
+| `.ant-select-dropdown, .ant-select-selector, .xq-segmented, .ant-radio-group` | 周 | 週 |
 
 ## 解説タブ（help/astro.json）
 

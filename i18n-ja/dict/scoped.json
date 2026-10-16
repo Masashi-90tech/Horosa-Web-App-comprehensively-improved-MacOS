@@ -11,5 +11,10 @@
 	{
 		"selector": ".ant-pagination",
 		"map": { "页": "ページ" }
+	},
+	{
+		"_note": "日付の刻み・期間の単位を選ぶプルダウンと切替ボタン。ここでの「天」は日、「周」は週の意味しかない。",
+		"selector": ".ant-select-dropdown, .ant-select-selector, .xq-segmented, .ant-radio-group",
+		"map": { "天": "日", "周": "週" }
 	}
 ]
