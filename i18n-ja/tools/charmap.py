@@ -38,17 +38,18 @@ for c in chars:
     if c in GUARD or in_big5(c):
         continue
     trad = back.get(c)
-    if not trad or len(trad) != 1:
+    if not trad:
         continue
-    t = next(iter(trad))
-    if s2t.convert(c) != t:
+    # 繁体字の候補が複数でも、日本の字体にすると 1 つにまとまるなら決められる（爲/為→為、產/産→産）
+    jps = {t2jp.convert(t) for t in trad}
+    if len(jps) != 1:
         continue
-    j = t2jp.convert(t)
+    j = next(iter(jps))
     if len(j) == 1 and j != c:
         out[c] = j
 
 # 日本で通用する字体に合わせる微調整（Big5 にある字のうち日本の字体が違う字、OpenCC が旧字体を返す字）
-out.update({'德': '徳', '厨': '厨'})
+out.update({'德': '徳', '厨': '厨', '离': '離', '气': '気'})
 out = {k: v for k, v in out.items() if k != v}
 
 path = os.path.join(ROOT, 'dict', 'charmap.json')

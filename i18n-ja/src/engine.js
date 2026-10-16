@@ -146,7 +146,7 @@ var DATA = require('../build/data.json');
 					return PATTERNS[i][1].replace(/\$(\d)/g, function(_, n){ return groups[n] || ''; })
 						.replace(/\{(\d)\}/g, function(_, n){
 							var g = groups[n] || '';
-							return Object.prototype.hasOwnProperty.call(TEXT, g) ? TEXT[g] : g;
+							return Object.prototype.hasOwnProperty.call(TEXT, g) ? TEXT[g] : (kanjify(g) || g);
 						});
 				});
 			}
